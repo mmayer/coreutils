@@ -57,7 +57,8 @@ noinst_HEADERS =		\
   src/prog-fprintf.h		\
   src/remove.h			\
   src/system.h			\
-  src/uname.h
+  src/uname.h			\
+  src/vary.h
 
 EXTRA_DIST +=		\
   src/dcgen		\
@@ -329,6 +330,7 @@ src_ginstall_SOURCES = src/install.c src/prog-fprintf.c $(copy_sources)
 src___SOURCES = src/lbracket.c
 
 src_cp_SOURCES = src/cp.c $(copy_sources)
+src_date_SOURCES = src/date.c src/vary.c
 src_dir_SOURCES = src/ls.c src/ls-dir.c
 src_vdir_SOURCES = src/ls.c src/ls-vdir.c
 src_id_SOURCES = src/id.c src/group-list.c
