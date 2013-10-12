@@ -32,13 +32,15 @@
 #include "quote.h"
 #include "stat-time.h"
 #include "fprintftime.h"
+#include "vary.h"
 
 /* The official name of this program (e.g., no 'g' prefix).  */
 #define PROGRAM_NAME "date"
 
 #define AUTHORS proper_name ("David MacKenzie")
 
-static bool show_date (const char *format, struct timespec when);
+static bool show_date (const char *format, struct timespec when,
+  const struct vary *v);
 
 enum Time_spec
 {
@@ -81,7 +83,7 @@ enum
   RFC_3339_OPTION = CHAR_MAX + 1
 };
 
-static char const short_options[] = "d:f:I::r:Rs:u";
+static char const short_options[] = "d:f:I::r:Rs:uv:";
 
 static struct option const long_options[] =
 {
@@ -96,6 +98,7 @@ static struct option const long_options[] =
   {"uct", no_argument, NULL, 'u'},
   {"utc", no_argument, NULL, 'u'},
   {"universal", no_argument, NULL, 'u'},
+  {"varity", required_argument, NULL, 'v'},
   {GETOPT_HELP_OPTION_DECL},
   {GETOPT_VERSION_OPTION_DECL},
   {NULL, 0, NULL, 0}
@@ -266,7 +269,8 @@ Show the local time for 9AM next Friday on the west coast of the US\n\
    Return true if successful.  */
 
 static bool
-batch_convert (const char *input_filename, const char *format)
+batch_convert (const char *input_filename, const char *format,
+    const struct vary *v)
 {
   bool ok;
   FILE *in_stream;
@@ -309,7 +313,7 @@ batch_convert (const char *input_filename, const char *format)
         }
       else
         {
-          ok &= show_date (format, when);
+          ok &= show_date (format, when, v);
         }
     }
 
@@ -332,6 +336,7 @@ main (int argc, char **argv)
   char const *format = NULL;
   char *batch_file = NULL;
   char *reference = NULL;
+  struct vary *v = NULL;
   struct stat refstats;
   bool ok;
   int option_specified_date;
@@ -405,6 +410,9 @@ main (int argc, char **argv)
           if (putenv (bad_cast ("TZ=UTC0")) != 0)
             xalloc_die ();
           TZSET;
+          break;
+        case 'v':
+          v = vary_append(v, optarg);
           break;
         case_GETOPT_HELP_CHAR;
         case_GETOPT_VERSION_CHAR (PROGRAM_NAME, AUTHORS);
@@ -480,7 +488,7 @@ main (int argc, char **argv)
     }
 
   if (batch_file != NULL)
-    ok = batch_convert (batch_file, format);
+    ok = batch_convert (batch_file, format, v);
   else
     {
       bool valid_date = true;
@@ -537,8 +545,10 @@ main (int argc, char **argv)
             }
         }
 
-      ok &= show_date (format, when);
+      ok &= show_date (format, when, v);
     }
+
+  vary_destroy(v);
 
   exit (ok ? EXIT_SUCCESS : EXIT_FAILURE);
 }
@@ -547,15 +557,23 @@ main (int argc, char **argv)
    in FORMAT, followed by a newline.  Return true if successful.  */
 
 static bool
-show_date (const char *format, struct timespec when)
+show_date (const char *format, struct timespec when, const struct vary *v)
 {
   struct tm *tm;
+  const struct vary *badv;
 
   tm = localtime (&when.tv_sec);
   if (! tm)
     {
       char buf[INT_BUFSIZE_BOUND (intmax_t)];
       error (0, 0, _("time %s is out of range"), timetostr (when.tv_sec, buf));
+      return false;
+    }
+
+  badv = vary_apply (v, tm);
+  if (badv)
+    {
+      error (0, 0, _("cannot apply date adjustment %s"), badv->arg);
       return false;
     }
 
