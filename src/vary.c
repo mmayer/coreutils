@@ -25,8 +25,14 @@
  */
 
 #include <sys/cdefs.h>
+
+#ifndef __FBSDID
+#define __FBSDID(x)
+#endif
+
 __FBSDID("$FreeBSD: release/9.2.0/bin/date/vary.c 133381 2004-08-09 13:43:39Z yar $");
 
+#include <config.h>
 #include <err.h>
 #include <time.h>
 #include <string.h>
@@ -66,7 +72,7 @@ domktime(struct tm *t, char type)
   return ret;
 }
 
-static int
+static int __attribute__ ((pure))
 trans(const struct trans t[], const char *arg)
 {
   int f;
@@ -137,7 +143,7 @@ adjyear(struct tm *t, char type, int val, int mk)
     default:
       t->tm_year = val;
       if (t->tm_year < 69)
-      	t->tm_year += 100;		/* as per date.c */
+        t->tm_year += 100;		/* as per date.c */
       else if (t->tm_year > 1900)
         t->tm_year -= 1900;             /* struct tm holds years since 1900 */
       break;
@@ -451,7 +457,7 @@ vary_apply(const struct vary *v, struct tm *t)
     } else {
       val = atoi(arg);
       which = arg[len-1];
-      
+
       switch (which) {
         case 'S':
           if (!adjsec(t, type, val, 1))
