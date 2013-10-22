@@ -155,6 +155,8 @@ Display the current time in the given FORMAT, or set the system date.\n\
                             a single space: 2006-08-07 12:34:56-06:00\n\
   -s, --set=STRING          set time described by STRING\n\
   -u, --utc, --universal    print or set Coordinated Universal Time (UTC)\n\
+  -v, --varity=STRING       Adjust the second, minute, hour, month day, week\n\
+                            day, month or year according to STRING.\n\
 "), stdout);
       fputs (HELP_OPTION_DESCRIPTION, stdout);
       fputs (VERSION_OPTION_DESCRIPTION, stdout);
@@ -257,6 +259,26 @@ Show the time on the west coast of the US (use tzselect(1) to find TZ)\n\
 \n\
 Show the local time for 9AM next Friday on the west coast of the US\n\
   $ date --date='TZ=\"America/Los_Angeles\" 09:00 next Fri'\n\
+\n\
+In the Europe/London timezone, the command\n\
+  $ date -v1m -v+1y\n\
+will display\n\
+  Sun Jan  4 04:15:24 GMT 1998\n\
+where it is currently Mon Aug  4 04:15:24 BST 1997.\n\
+\n\
+The command\n\
+  $ date -v1d -v3m -v0y -v-1d\n\
+will display the last day of February in the year 2000\n\
+  Tue Feb 29 03:18:00 GMT 2000\n\
+So will the command\n\
+  $ date -v3m -v30d -v0y -v-1m\n\
+because there is no such date as the 30th of February.\n\
+\n\
+The command\n\
+  $ date -v1d -v+1m -v-1d -v-fri\n\
+will display the last Friday of the month\n\
+  Fri Aug 29 04:31:11 BST 1997\n\
+where it is currently Mon Aug  4 04:31:11 BST 1997.\n\
 "), stdout);
       emit_ancillary_info ();
     }
